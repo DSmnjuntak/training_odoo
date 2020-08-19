@@ -62,6 +62,7 @@
       <field name="arch" type="xml">
         <tree string="Kursus List">
           <field name="name"/>
+          <field name="responsible_id"/>
           <field name="description"/>
         </tree>
       </field>
@@ -78,10 +79,30 @@
           <sheet>
             <group>
               <field name="name"/>
+              <field name="responsible_id"/>
             </group>
             <notebook>
               <page string="Keterangan">
                 <field name="description"/>
+              </page>
+              <page string="Sesi">
+                <field name="session_ids">
+                  <tree string="Daftar Sesi">
+                    <field name="name"/>
+                    <field name="instructor_id"/>
+                  </tree>
+                  <form>
+                    <group string="Informasi">
+                      <field name="name"/>
+                      <field name="instructor_id"/>
+                    </group>
+                    <group string="Jadwal">
+                      <field name="start_date"/>
+                      <field name="duration"/>
+                      <field name="seats"/>
+                    </group>
+                  </form>
+                </field>
               </page>
             </notebook>
           </sheet>
@@ -117,6 +138,65 @@
 
     <menuitem id="kursus_menu" name="Kursus" parent="training_odoo_menu" action="kursus_list_action"/>
 
+    <!-- ### Membuat Tampilan Tree/List Sesi ### -->
+
+    <record model="ir.ui.view" id="sesi_tree_view">
+      <field name="name">training.sesi.tree</field>
+      <field name="model">training.sesi</field>
+      <field name="arch" type="xml">
+        <tree string="Sesi List">
+          <field name="name"/>
+          <field name="start_date"/>
+          <field name="duration"/>
+          <field name="seats"/>
+          <field name="instructor_id"/>
+        </tree>
+      </field>
+    </record>
+
+
+    <!-- ### Membuat Tampilan Form Sesi ### -->
+
+    <record model="ir.ui.view" id="sesi_form_view">
+      <field name="name">training.sesi.form</field>
+      <field name="model">training.sesi</field>
+      <field name="arch" type="xml">
+        <form string="Sesi Form">
+          <sheet>
+            <group>
+              <group string="Informasi">
+                <field name="course_id"/>
+                <field name="name"/>
+                <field name="instructor_id"/>
+              </group>
+              <group string="Jadwal">
+                <field name="start_date"/>
+                <field name="duration"/>
+                <field name="seats"/>
+              </group>
+              <group string="Peserta" colspan="2">
+                <field name="attendee_ids" nolabel="1"/>
+              </group>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+
+    <!-- ### Membuat Action/Event Object Sesi ### -->
+
+    <record model="ir.actions.act_window" id="sesi_list_action">
+      <field name="name">Sesi</field>
+      <field name="res_model">training.sesi</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <!-- ### Membuat Sub Menu Sesi ### -->
+
+    <menuitem id="sesi_menu" name="Sesi" parent="training_odoo_menu" action="sesi_list_action"/>
 
 
   </data>
