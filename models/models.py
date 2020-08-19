@@ -25,6 +25,27 @@ class Kursus(models.Model):
                                      ondelete='set null',
                                      string="Penanggung Jawab",
                                      index=True)
+    _sql_constraints = [('name_description_cek', 'CHECK(name != description)',
+                         'Judul kursus dan keterangan tidak boleh sama'),
+                        ('name_unik', 'UNIQUE(name)',
+                         'Judul kursus harus unik')]
+    @api.multi
+    def copy(self, default=None):
+        default = dict(default or {})
+        # Searching judul kursus yang sama dan menyimpannya pada variable copied_count
+        copied_count = self.search_count([('name','=alike',"Copy of {}%".format(self.name))])
+        
+        # Cek isi variable copied_count (hasil searching)
+        if not copied_count:
+            # Jika proses searching judul yang sama tidak ditemukan, maka judul baru akan dikasih imbuhan 'Copy of'
+            new_name = "Copy of {}".format(self.name)
+        else:
+            # Jika proses searching judul yang sama ditemukan, maka judul baru akan dikasih imbuhan 'Copy of' dan angka terakhir duplicate
+            new_name = "Copy of {} ({})".format(self.name, copied_count)
+            
+        # Mereplace value field name dengan yang sudah disesuaikan
+        default['name'] = new_name
+        return super(Kursus, self).copy(default)
 
 
 class Sesi(models.Model):
@@ -47,10 +68,49 @@ class Sesi(models.Model):
                                     string="Peserta",
                                     domain=[('instructor', '=', False)])
 
-    @api.depends('seats', 'attendee_ids')
+    @api.constrains('instructor_id', 'attendee_ids')
+    def _check_instructor_not_in_attendees(self):
+        for item in self:
+            # Jika field instructor_id (Instruktur) diisi DAN instructor_id ada di tabel attendee_ids (Peserta), maka muncul pesan error
+            if item.instructor_id and item.instructor_id in item.attendee_ids:
+                raise exceptions.ValidationError(
+                    "Seorang instruktur tidak boleh menjadi peserta")
+
+    @api.onchange('seats', 'attendee_ids')
     def _taken_seats(self):
-        for r in self:
-            if not r.seats:
-                r.taken_seats = 0.0
-            else:
-                r.taken_seats = 100.0 * len(r.attendee_ids) / r.seats
+        self.update({'nama_field': 'nilai'})
+
+        self.update({
+            'partner_id': self.partner_id.id,
+            'fiscalyear_id': self.partner_id.fiscalyear_id.id
+        })
+
+
+# if self.seats <= 0:  # cek nilai field seats, jika dibawah 0 (negatif), maka masuk kondisi if
+#     return {
+#         'value': {
+#             'seats': len(self.attendee_ids) or
+#             1  # mengisi field seats dengan nilai jumlah peserta atau 1
+#         },
+#         'warning': {
+#             'title': "Nilai Jumlah Kursi Salah",  # judul pop up
+#             'message':
+#             "Jumlah Kursi Tidak Boleh Negatif"  # pesan pop up
+#         }
+#     }
+
+# if self.seats < len(
+#         self.attendee_ids
+# ):  # cek nilai field seats (jumlah kursi) apakah lebih kecil dari field attendee_ids (jumlah peserta), jika iya maka masuk kondisi if
+#     return {
+#         'value': {
+#             'seats':
+#             len(self.attendee_ids
+#                 )  # mengisi field seats dengan nilai jumlah peserta
+#         },
+#         'warning': {
+#             'title': "Peserta Terlalu Banyak",  # judul pop up
+#             'message':
+#             "Tambahkan Kursi atau Kurangi Peserta"  # pesan pop up
+#         }
+#     }
