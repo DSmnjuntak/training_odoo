@@ -199,5 +199,40 @@
     <menuitem id="sesi_menu" name="Sesi" parent="training_odoo_menu" action="sesi_list_action"/>
 
 
+    <!-- Menambahkan field pada view form partner -->
+
+    <record model="ir.ui.view" id="instruktur_form_view">
+      <field name="name">res.partner.instruktur</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form"/>
+      <field name="arch" type="xml">
+        <notebook position="inside">
+          <page string="Sessions">
+            <group>
+              <field name="instructor"/>
+              <field name="session_ids"/>
+            </group>
+          </page>
+        </notebook>
+      </field>
+    </record>
+
+    <!-- Membuat action baru untuk menu baru-->
+
+    <record model="ir.actions.act_window" id="kontak_list_action">
+      <field name="name">Kontak</field>
+      <field name="res_model">res.partner</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <!-- ### Membuat menu title baru ### -->
+
+    <menuitem id="konfigurasi_menu" name="Konfigurasi" parent="main_training_odoo_menu"/>
+
+    <!-- ### Membuat Sub Menu Kontak ### -->
+
+    <menuitem id="kontak_menu" name="Kontak" parent="konfigurasi_menu" action="kontak_list_action"/>
+    
   </data>
 </odoo>
